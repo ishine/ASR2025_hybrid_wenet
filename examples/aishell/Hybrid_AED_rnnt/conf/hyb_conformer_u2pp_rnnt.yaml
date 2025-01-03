@@ -11,15 +11,15 @@ encoder_conf:
     attention_dropout_rate: 0.1
     input_layer: conv2d # encoder input type, you can chose conv2d, conv2d6 and conv2d8
     normalize_before: true
-    cnn_module_kernel: 15
-    use_cnn_module: true
+    cnn_module_kernel: 8
+    use_cnn_module: True
     activation_type: 'swish'
     pos_enc_layer_type: 'rel_pos'
     selfattention_layer_type: 'rel_selfattn'
-    # causal: true
-    # use_dynamic_chunk: true
-    # cnn_module_norm: 'layer_norm' # using nn.LayerNorm makes model converge faster
-    # use_dynamic_left_chunk: false
+    causal: true
+    use_dynamic_chunk: true
+    cnn_module_norm: 'layer_norm' # using nn.LayerNorm makes model converge faster
+    use_dynamic_left_chunk: false
 
 joint: hyb_transducer_joint
 joint_conf:
@@ -53,11 +53,11 @@ decoder_conf:
   self_attention_dropout_rate: 0.1
   src_attention_dropout_rate: 0.1
 
-tokenizer: bpe
+tokenizer: char
 tokenizer_conf:
-  symbol_table_path: 'data/lang_char/train_960_unigram5000_units.txt'
+  symbol_table_path: 'data/dict/lang_char.txt'
   split_with_space: false
-  bpe_path: 'data/lang_char/train_960_unigram5000.model'
+  bpe_path: null
   non_lang_syms_path: null
   is_multilingual: false
   num_languages: 1
@@ -73,11 +73,11 @@ ctc_conf:
 
 cmvn: global_cmvn
 cmvn_conf:
-  cmvn_file: 'data/train_960/global_cmvn'
+  cmvn_file: 'data/train/global_cmvn'
   is_json_cmvn: true
 
 # hybrid transducer+ctc+attention
-model: hyb_transducer
+model: transducer
 model_conf:
     transducer_weight: 0.75
     ctc_weight: 0.1
@@ -89,7 +89,7 @@ model_conf:
 dataset: asr
 dataset_conf:
     filter_conf:
-        max_length: 1650
+        max_length: 40960
         min_length: 10
         token_max_length: 200
         token_min_length: 1
@@ -114,12 +114,14 @@ dataset_conf:
     sort_conf:
         sort_size: 500  # sort_size should be less than shuffle_size
     batch_conf:
+        # batch_type: 'static' # static or dynamic
+        # batch_size: 4
         batch_type: 'dynamic' # static or dynamic
         max_frames_in_batch: 4000
 
 grad_clip: 4
 accum_grad: 1
-max_epoch: 140
+max_epoch: 130
 log_interval: 100
 
 optim: adam
@@ -128,4 +130,3 @@ optim_conf:
 scheduler: warmuplr     # pytorch v1.1.0+ required
 scheduler_conf:
     warmup_steps: 25000
-
